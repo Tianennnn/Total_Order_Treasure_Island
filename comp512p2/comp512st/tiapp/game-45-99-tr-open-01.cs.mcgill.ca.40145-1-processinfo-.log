@@ -1,0 +1,20 @@
+Oct 27, 2025 3:13:30.809950333 AM comp512st.tiapp.TreasureIslandApp main INFO: Started with arguments : [tr-open-01.cs.mcgill.ca:40145, tr-open-01.cs.mcgill.ca:40145,tr-open-02.cs.mcgill.ca:40245, game-45-99, 2, 1]
+Oct 27, 2025 3:13:30.827415246 AM comp512.utils.FailCheck <init> INFO: Initializing failure check emulation setup....
+Oct 27, 2025 3:13:30.862423413 AM comp512.gcl.GCL <init> INFO: Host tr-open-01.cs.mcgill.ca/10.69.38.151:40145
+Oct 27, 2025 3:13:30.863162536 AM comp512.gcl.GCL <init> INFO: Initializing outbox despatcher threads.
+Oct 27, 2025 3:13:30.865011129 AM comp512.gcl.GCL$GCLOutBoxDespatcher run INFO: tr-open-01.cs.mcgill.ca:40145: Starting outbox despatch thread for process.
+Oct 27, 2025 3:13:30.866442393 AM comp512.gcl.GCL$GCLOutBoxDespatcher run INFO: tr-open-02.cs.mcgill.ca:40245: Starting outbox despatch thread for process.
+Oct 27, 2025 3:13:30.977437976 AM comp512.ti.TreasureIsland <init> INFO: Treasure Island initialized.
+Oct 27, 2025 3:13:34.375278078 AM comp512st.tiapp.TreasureIslandApp main FINE: cmd is : A
+Oct 27, 2025 3:13:34.376297981 AM comp512.gcl.GCL broadcastMsg FINE: Broadcast message request received. Translating to point-to-point messages : [Ljava.lang.Object;@3d82c5f3
+Oct 27, 2025 3:13:34.377157619 AM comp512.gcl.GCL sendMsg FINE: Request received to send message to tr-open-01.cs.mcgill.ca:40145. [Ljava.lang.Object;@3d82c5f3
+Oct 27, 2025 3:13:34.378312270 AM comp512.gcl.GCL sendMsg FINE: Request received to send message to tr-open-02.cs.mcgill.ca:40245. [Ljava.lang.Object;@3d82c5f3
+Oct 27, 2025 3:13:34.383682092 AM comp512.gcl.GCL$InboxListener run INFO: Network connection request from  /10.69.38.151
+Oct 27, 2025 3:13:34.390104959 AM comp512.gcl.GCL$GCLOutBoxDespatcher run FINE: tr-open-01.cs.mcgill.ca:40145: Sending message to. message: [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@3d82c5f3]
+Oct 27, 2025 3:13:34.390104014 AM comp512.gcl.GCL$GCLOutBoxDespatcher run FINE: tr-open-02.cs.mcgill.ca:40245: Sending message to. message: [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@3d82c5f3]
+Oct 27, 2025 3:13:34.390531364 AM comp512.gcl.GCL$InboxListener run INFO: tr-open-01.cs.mcgill.ca:40145: Input stream set up for this process to receive incoming messages. Inet: /10.69.38.151
+Oct 27, 2025 3:13:34.391985188 AM comp512.gcl.GCL$GCLInbox run INFO: tr-open-01.cs.mcgill.ca:40145: Starting an inBox thread to receive messages from this process.
+Oct 27, 2025 3:13:34.410577324 AM comp512.gcl.GCL$GCLInbox run FINE: tr-open-01.cs.mcgill.ca:40145: Received a message from. message: [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@530366af]
+Oct 27, 2025 3:13:34.411042100 AM comp512.gcl.GCL readGCMessage INFO: Delivering message : [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@530366af]
+Oct 27, 2025 3:13:34.411348513 AM comp512st.tiapp.TreasureIslandApp run FINE: Received :[1, L]
+Oct 27, 2025 3:13:34.411684572 AM comp512.ti.TreasureIsland move INFO: Move request: player number 1 direction L

@@ -1,0 +1,14 @@
+Oct 27, 2025 3:13:32.652876706 AM comp512st.tiapp.TreasureIslandApp main INFO: Started with arguments : [tr-open-02.cs.mcgill.ca:40245, tr-open-01.cs.mcgill.ca:40145,tr-open-02.cs.mcgill.ca:40245, game-45-99, 2, 2]
+Oct 27, 2025 3:13:32.683188144 AM comp512.utils.FailCheck <init> INFO: Initializing failure check emulation setup....
+Oct 27, 2025 3:13:32.711973321 AM comp512.gcl.GCL <init> INFO: Host tr-open-02.cs.mcgill.ca/10.69.38.152:40245
+Oct 27, 2025 3:13:32.712634588 AM comp512.gcl.GCL <init> INFO: Initializing outbox despatcher threads.
+Oct 27, 2025 3:13:32.714205832 AM comp512.gcl.GCL$GCLOutBoxDespatcher run INFO: tr-open-01.cs.mcgill.ca:40145: Starting outbox despatch thread for process.
+Oct 27, 2025 3:13:32.714229982 AM comp512.gcl.GCL$GCLOutBoxDespatcher run INFO: tr-open-02.cs.mcgill.ca:40245: Starting outbox despatch thread for process.
+Oct 27, 2025 3:13:32.827967565 AM comp512.ti.TreasureIsland <init> INFO: Treasure Island initialized.
+Oct 27, 2025 3:13:34.382954378 AM comp512.gcl.GCL$InboxListener run INFO: Network connection request from  /10.69.38.151
+Oct 27, 2025 3:13:34.392174591 AM comp512.gcl.GCL$InboxListener run INFO: tr-open-01.cs.mcgill.ca:40145: Input stream set up for this process to receive incoming messages. Inet: /10.69.38.151
+Oct 27, 2025 3:13:34.392824427 AM comp512.gcl.GCL$GCLInbox run INFO: tr-open-01.cs.mcgill.ca:40145: Starting an inBox thread to receive messages from this process.
+Oct 27, 2025 3:13:34.433337921 AM comp512.gcl.GCL$GCLInbox run FINE: tr-open-01.cs.mcgill.ca:40145: Received a message from. message: [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@62577bc2]
+Oct 27, 2025 3:13:34.433872082 AM comp512.gcl.GCL readGCMessage INFO: Delivering message : [senderProcess:tr-open-01.cs.mcgill.ca:40145:val:[Ljava.lang.Object;@62577bc2]
+Oct 27, 2025 3:13:34.434255504 AM comp512st.tiapp.TreasureIslandApp run FINE: Received :[1, L]
+Oct 27, 2025 3:13:34.434590433 AM comp512.ti.TreasureIsland move INFO: Move request: player number 1 direction L
