@@ -32,16 +32,16 @@ public class Paxos
     static int ballotIDCounter = 0;
     static Queue<Integer> queueTO = new PriorityQueue<>();
 
-    int promisedBID = -1;
-    int proposedBID = -1;
-    Object proposedVal;
-    Object originalProposedVal;
+    int promisingBID = -1;
+    int proposingBID = -1;
+    Object proposingVal;
+    Object originalProposingVal;
 
     int acceptedBID = -1;
     Object acceptedVal = null;
 
     Map<Integer, Object> prevAcceptedIDVals = new HashMap<>();
-    List<String> promisedProcess = new ArrayList<String>();
+    List<String> promisedProcesses = new ArrayList<String>();
 
 	public Paxos(String myProcess, String[] allGroupProcesses, Logger logger, FailCheck failCheck) throws IOException, UnknownHostException
 	{
@@ -82,7 +82,7 @@ public class Paxos
 
     private class PaxosMessage {
         String type;
-        List<String> validTypes = Arrays.asList("PROPOSE", "PROMISE", "REFUSE", "ACCEPT", "ACCEPTED", "DECIDE");
+        List<String> validTypes = Arrays.asList("PROPOSE", "PROMISE", "REFUSE", "ACCEPT", "ACCEPT_ACK", "CONFIRM");
 
         int ballotID;
         int prevAcceptedBID = -1;
@@ -126,7 +126,7 @@ public class Paxos
         long timeout = 1000;
         while (System.currentTimeMillis() - start < timeout) {
             // return true as soon as reach the majority
-            if (promisedProcess.size() > allGroupProcesses.size()/2) {
+            if (promisedProcesses.size() > allGroupProcesses.size()/2) {
                 return true;
             }
         }
@@ -137,31 +137,33 @@ public class Paxos
     public void broadcastTOMsg_temp(Object val) {
         ballotIDCounter ++;
         int ballotID = ballotIDCounter;
-        proposedBID = ballotID;
-        proposedVal = val;
+        proposingBID = ballotID;
+        proposingVal = val;
         proposeToAll(ballotID);
         
         if ( !hasMajorityPromised() ){
             // start over
             prevAcceptedIDVals = new HashMap<>();
-            promisedProcess = new ArrayList<String>();
+            promisedProcesses = new ArrayList<String>();
             broadcastTOMsg_temp(val);
+            return;
         }
-        else{
-            // if some processes has previously accepted other values
-            if(prevAcceptedIDVals.size()>0){
-                // get the previously accepted value with the highest ballot ID
-                Integer highestID = -1;
-                for (Integer id : prevAcceptedIDVals.keySet()) {
-                    if (id > highestID) {
-                        highestID = id;
-                    }
+        
+        // if some processes has previously accepted other values
+        if(prevAcceptedIDVals.size()>0){
+            // get the previously accepted value with the highest ballot ID
+            Integer highestID = -1;
+            for (Integer id : prevAcceptedIDVals.keySet()) {
+                if (id > highestID) {
+                    highestID = id;
                 }
-                // propose the value with the highest ballot ID instead, for the rest of the PAXOS round
-                originalProposedVal = proposedVal;      // save the original proposed value
-                proposedVal = prevAcceptedIDVals.get(highestID);
             }
+            // propose the value with the highest ballot ID instead, for the rest of the PAXOS round
+            originalProposingVal = proposingVal;      // save the original proposed value
+            proposingVal = prevAcceptedIDVals.get(highestID);
         }
+
+        
 
 
     }
@@ -178,8 +180,8 @@ public class Paxos
 
             if (msg.type.equals("PROPOSE")){
                 PaxosMessage promiseMsg;
-                int poposedBID = msg.ballotID;
-                if (poposedBID < promisedBID) {
+                int proposedBID = msg.ballotID;
+                if (proposedBID < promisingBID) {
                     promiseMsg = new PaxosMessage("REFUSE");
                 }
                 else{
@@ -190,7 +192,7 @@ public class Paxos
                         promiseMsg.setPrevAcceptedVal(acceptedVal);
                     }
                     // promise to the new bollot id
-                    promisedBID = poposedBID;
+                    promisingBID = proposedBID;
                 }
                 // return the message to the sender
                 gcl.sendMsg(promiseMsg, sender);
@@ -198,15 +200,16 @@ public class Paxos
 
             else if (msg.type.equals("PROMISE")) {
                 int promisedBID = msg.ballotID;
-                if(promisedBID == proposedBID){
-                    promisedProcess.add(sender);
+                if(promisedBID == proposingBID){
+                    promisedProcesses.add(sender);
                     // if previously accepted other value
                     if (msg.prevAcceptedBID != -1 && msg.prevAcceptedVal != null) {
                         prevAcceptedIDVals.put(msg.prevAcceptedBID, msg.prevAcceptedVal);
                     }
                 }
-
             }
+
+
 
             else if (msg.type.equals("CONFIRM")) {
                 confirmedVal = null;
