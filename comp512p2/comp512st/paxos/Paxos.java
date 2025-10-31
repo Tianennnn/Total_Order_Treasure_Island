@@ -29,18 +29,18 @@ public class Paxos
 	GCL gcl;
 	FailCheck failCheck;
 
-    static int ballotIDCounter = 0;
-    static Queue<Integer> queueTO = new PriorityQueue<>();
+    int processIndex;
+    static int ballotIDCounter;
 
     int promisingBID = -1;
     int proposingBID = -1;
     Object proposingVal;
-    Object originalProposingVal;
+    Object originalProposingVal = null;
 
     int acceptedBID = -1;
     Object acceptedVal = null;
 
-    Map<Integer, Object> prevAcceptedIDVals = new HashMap<>();
+    Map<Integer, Object> prevAcceptedIDVals = new HashMap<Integer, Object>();
     List<String> promisedProcesses = new ArrayList<String>();
     
     List<String> acceptAckProcesses = new ArrayList<String>();
@@ -54,6 +54,9 @@ public class Paxos
 		this.gcl = new GCL(myProcess, allGroupProcesses, null, logger);
 
         this.allGroupProcesses = Arrays.asList(allGroupProcesses);
+
+        processIndex = this.allGroupProcesses.indexOf(myProcess);
+        ballotIDCounter = processIndex;
 	}
 
 	// This is what the application layer is going to call to send a message/value, such as the player and the move
@@ -86,11 +89,11 @@ public class Paxos
         String type;
         List<String> validTypes = Arrays.asList("PROPOSE", "PROMISE", "REFUSE", "ACCEPT?", "DENY","ACCEPT_ACK", "CONFIRM");
 
-        int ballotID;
+        int ballotID = -1;
         int prevAcceptedBID = -1;
-        Object prevAcceptedVal;
+        Object prevAcceptedVal = null;
 
-        Object acceptRequestVal;
+        Object acceptRequestVal = null;
 
         public PaxosMessage(String type){
             if (validTypes.contains(type.toUpperCase())){
@@ -144,7 +147,7 @@ public class Paxos
         msg.setBallotID(ballotID);
 
         // for tracking the processes that has previously accepted values from other proposers
-        prevAcceptedIDVals = new HashMap<>();
+        prevAcceptedIDVals = new HashMap<Integer, Object>();
         // for later checking whether majority processes has promised
         promisedProcesses = new ArrayList<String>();
         
@@ -180,7 +183,7 @@ public class Paxos
     }
 
     public void broadcastTOMsg_temp(Object val) {
-        ballotIDCounter ++;
+        ballotIDCounter += allGroupProcesses.size();
         int ballotID = ballotIDCounter;
         proposingBID = ballotID;
         proposingVal = val;
@@ -219,6 +222,13 @@ public class Paxos
         }
 
         confirmToAll(proposingBID);
+
+        if (originalProposingVal != null) {
+            proposingVal = originalProposingVal;
+            originalProposingVal = null;
+            // Start another PAXOS round to propose the orginal proposing value
+            broadcastTOMsg_temp(proposingVal);
+        }
 
     }
 
@@ -294,8 +304,11 @@ public class Paxos
 
             else if (msg.type.equals("CONFIRM")) {
                 confirmedVal = acceptedVal;
-                break;
+                if (originalProposingVal == null){
+                    break;
+                }
             }
+
         }
 
         return confirmedVal;
