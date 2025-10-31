@@ -84,13 +84,13 @@ public class Paxos
 
     private class PaxosMessage {
         String type;
-        List<String> validTypes = Arrays.asList("PROPOSE", "PROMISE", "REFUSE", "ACCEPT", "DENY","ACCEPT_ACK", "CONFIRM");
+        List<String> validTypes = Arrays.asList("PROPOSE", "PROMISE", "REFUSE", "ACCEPT?", "DENY","ACCEPT_ACK", "CONFIRM");
 
         int ballotID;
         int prevAcceptedBID = -1;
         Object prevAcceptedVal;
 
-        Object acceptVal;
+        Object acceptRequestVal;
 
         public PaxosMessage(String type){
             if (validTypes.contains(type.toUpperCase())){
@@ -114,20 +114,20 @@ public class Paxos
             this.prevAcceptedVal = prevAcceptedVal;
         }
 
-        public void setAcceptVal(Object val) {
-            this.acceptVal = val;
+        public void setAcceptRequestVal(Object val) {
+            this.acceptRequestVal = val;
         }
     }
 
 
 
-    private void broadcastAcceptToAll(int ballotID, Object val){
-        PaxosMessage msg = new PaxosMessage("ACCEPT");
+    private void AcceptRequestToAll(int ballotID, Object val){
+        PaxosMessage msg = new PaxosMessage("ACCEPT?");
         msg.setBallotID(ballotID);
-        msg.setAcceptVal(val);
+        msg.setAcceptRequestVal(val);
 
         // for later checking whether majority processes has promised
-        acceptAckProcesses = new ArrayList<String>();
+        acceptAckProcesses = new ArrayList<String> ();
 
         gcl.broadcastMsg(msg);
     }    
@@ -158,6 +158,19 @@ public class Paxos
         return false;
     }
 
+    private boolean hasMajorityAcceptAck() {
+        long start = System.currentTimeMillis();
+        // allow 1 second to hear back the promises
+        long timeout = 1000;
+        while (System.currentTimeMillis() - start < timeout) {
+            // return true as soon as reach the majority
+            if (acceptAckProcesses.size() > allGroupProcesses.size() / 2) {
+                return true;
+            }
+        }
+        // if time out
+        return false;
+    }
 
     public void broadcastTOMsg_temp(Object val) {
         ballotIDCounter ++;
@@ -190,8 +203,14 @@ public class Paxos
             proposingVal = valForHighestBID;
         }
 
-        broadcastAcceptToAll(proposingBID, proposingVal);
+        AcceptRequestToAll(proposingBID, proposingVal);
         
+        if ( !hasMajorityAcceptAck() ) {
+            // start over
+            broadcastTOMsg_temp(val);
+            return;
+        }
+
 
     }
 
@@ -238,9 +257,9 @@ public class Paxos
                 }
             }
 
-            else if (msg.type.equals("ACCEPT")) {
+            else if (msg.type.equals("ACCEPT?")) {
                 int proposedBID = msg.ballotID;
-                Object proposedVal = msg.acceptVal;
+                Object proposedVal = msg.acceptRequestVal;
 
                 PaxosMessage acceptAckMsg;
                 if(proposedBID < promisingBID){
@@ -258,6 +277,12 @@ public class Paxos
                 gcl.sendMsg(acceptAckMsg, sender);
             }
 
+            else if (msg.type.equals("ACCEPT_ACK")) {
+                int ackedBID = msg.ballotID;
+                if(ackedBID == proposingBID){
+                    acceptAckProcesses.add(sender);
+                }
+            }
 
             else if (msg.type.equals("CONFIRM")) {
                 confirmedVal = null;
