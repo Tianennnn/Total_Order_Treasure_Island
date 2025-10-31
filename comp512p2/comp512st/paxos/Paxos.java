@@ -196,53 +196,56 @@ public class Paxos
     }
 
     public void broadcastTOMsg_temp(Object val) {
-        ballotIDCounter += allGroupProcesses.size();
-        int ballotID = ballotIDCounter;
-        proposingBID = ballotID;
-        proposingVal = val;
-        proposeToAll(ballotID);
-        
-        if ( !hasMajorityPromised() ){
-            // start over
-            broadcastTOMsg_temp(val);
-            return;
-        }
-        
-        // if some processes has previously accepted other values
-        if(prevAcceptedIDVals.size()>0){
-            // get the previously accepted value with the highest ballot ID
-            Integer highestBID = -1;
-            for (Integer id : prevAcceptedIDVals.keySet()) {
-                if (id > highestBID) {
-                    highestBID = id;
+        while (true){
+            ballotIDCounter += allGroupProcesses.size();
+            int ballotID = ballotIDCounter;
+            proposingBID = ballotID;
+            proposingVal = val;
+            proposeToAll(ballotID);
+            
+            // Wait for majority of promises
+            if (!hasMajorityPromised()) {
+                // restart the Paxos round
+                continue;
+            }
+            
+            // if some processes has previously accepted other values
+            if(prevAcceptedIDVals.size()>0){
+                // get the previously accepted value with the highest ballot ID
+                Integer highestBID = -1;
+                for (Integer id : prevAcceptedIDVals.keySet()) {
+                    if (id > highestBID) {
+                        highestBID = id;
+                    }
                 }
+                // propose the value with the highest ballot ID instead, for the rest of the PAXOS round
+                Object valForHighestBID = prevAcceptedIDVals.get(highestBID);
+                if ( !valForHighestBID.equals(proposingVal) ){
+                    // save the original proposed value
+                    originalProposingVal = proposingVal;
+                }
+                proposingVal = valForHighestBID;
             }
-            // propose the value with the highest ballot ID instead, for the rest of the PAXOS round
-            Object valForHighestBID = prevAcceptedIDVals.get(highestBID);
-            if ( !valForHighestBID.equals(proposingVal) ){
-                // save the original proposed value
-                originalProposingVal = proposingVal;
+
+            AcceptRequestToAll(proposingBID, proposingVal);
+            
+            // Wait for majority accepts
+            if (!hasMajorityAcceptAck()) {
+                // restart the Paxos round
+                continue;
             }
-            proposingVal = valForHighestBID;
+
+            confirmToAll(proposingBID);
+
+            if (originalProposingVal != null) {
+                val = originalProposingVal;
+                originalProposingVal = null;
+                // Start another PAXOS round to propose the orginal proposing value
+                continue; 
+            }
+
+            break;
         }
-
-        AcceptRequestToAll(proposingBID, proposingVal);
-        
-        if ( !hasMajorityAcceptAck() ) {
-            // start over
-            broadcastTOMsg_temp(val);
-            return;
-        }
-
-        confirmToAll(proposingBID);
-
-        if (originalProposingVal != null) {
-            proposingVal = originalProposingVal;
-            originalProposingVal = null;
-            // Start another PAXOS round to propose the orginal proposing value
-            broadcastTOMsg_temp(proposingVal);
-        }
-
     }
 
     public Object acceptTOMsg_temp() throws InterruptedException {
