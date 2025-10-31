@@ -159,6 +159,13 @@ public class Paxos
         // allow 1 second to hear back the promises
         long timeout = 1000;
         while (System.currentTimeMillis() - start < timeout) {
+            try{
+                // avoid looping millions of times per second
+                Thread.sleep(5);
+            }
+            catch(Exception e){
+                System.out.println(e.getMessage()); 
+            }
             // return true as soon as reach the majority
             if (promisedProcesses.size() > allGroupProcesses.size()/2) {
                 return true;
@@ -173,8 +180,14 @@ public class Paxos
         // allow 1 second to hear back the promises
         long timeout = 1000;
         while (System.currentTimeMillis() - start < timeout) {
+            try {
+                // avoid looping millions of times per second
+                Thread.sleep(5);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
             // return true as soon as reach the majority
-            if (acceptAckProcesses.size() > allGroupProcesses.size() / 2) {
+            if (acceptAckProcesses.size() > allGroupProcesses.size()/2) {
                 return true;
             }
         }
