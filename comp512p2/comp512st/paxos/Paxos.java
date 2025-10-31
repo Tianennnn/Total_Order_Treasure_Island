@@ -94,6 +94,7 @@ public class Paxos
         Object prevAcceptedVal = null;
 
         Object acceptRequestVal = null;
+        Object confirmedVal = null;
 
         public PaxosMessage(String type){
             if (validTypes.contains(type.toUpperCase())){
@@ -120,13 +121,18 @@ public class Paxos
         public void setAcceptRequestVal(Object val) {
             this.acceptRequestVal = val;
         }
+
+        public void setConfirmedVal(Object val){
+            this.confirmedVal = val;
+        }
     }
 
 
 
-    private void confirmToAll(int ballotID) {
+    private void confirmToAll(int ballotID, Object val) {
         PaxosMessage msg = new PaxosMessage("CONFIRM");
         msg.setBallotID(ballotID);
+        msg.setConfirmedVal(val);
 
         gcl.broadcastMsg(msg);
     }
@@ -235,7 +241,7 @@ public class Paxos
                 continue;
             }
 
-            confirmToAll(proposingBID);
+            confirmToAll(proposingBID, proposingVal);
 
             if (originalProposingVal != null) {
                 val = originalProposingVal;
@@ -319,7 +325,10 @@ public class Paxos
             }
 
             else if (msg.type.equals("CONFIRM")) {
-                confirmedVal = acceptedVal;
+                confirmedVal = msg.confirmedVal;
+                acceptedVal = confirmedVal;
+                acceptedBID = msg.ballotID;
+                
                 if (originalProposingVal == null){
                     break;
                 }
