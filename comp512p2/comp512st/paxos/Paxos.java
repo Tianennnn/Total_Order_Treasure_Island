@@ -121,6 +121,13 @@ public class Paxos
 
 
 
+    private void confirmToAll(int ballotID) {
+        PaxosMessage msg = new PaxosMessage("CONFIRM");
+        msg.setBallotID(ballotID);
+
+        gcl.broadcastMsg(msg);
+    }
+
     private void AcceptRequestToAll(int ballotID, Object val){
         PaxosMessage msg = new PaxosMessage("ACCEPT?");
         msg.setBallotID(ballotID);
@@ -211,6 +218,7 @@ public class Paxos
             return;
         }
 
+        confirmToAll(proposingBID);
 
     }
 
@@ -285,7 +293,7 @@ public class Paxos
             }
 
             else if (msg.type.equals("CONFIRM")) {
-                confirmedVal = null;
+                confirmedVal = acceptedVal;
                 break;
             }
         }
